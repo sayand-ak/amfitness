@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 async function startServer() {
   try {
     // Run database migrations
-    console.log("Running migrations...");
+    console.log("Running migrationssss...");
     execSync("npx prisma migrate deploy --schema=src/prisma/schema.prisma", { stdio: "inherit" });
     console.log("Migrations completed successfully.");
 
