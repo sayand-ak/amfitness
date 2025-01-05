@@ -1,5 +1,6 @@
 import prisma from '../config/prisma';
 import { CustomError } from './../utils/CustomError';
+import bcrypt from 'bcryptjs'
 
 const login = async (username: string, password: string) => {
     try {
@@ -14,14 +15,15 @@ const login = async (username: string, password: string) => {
             throw new CustomError("User not found", 404);
         }
 
-        if (gymUser.password !== password) {
+        const isPasswordValid = await bcrypt.compare(await bcrypt.hash(password, 10), gymUser.password);
+        if (isPasswordValid) {
             throw new CustomError("Invalid credentials", 401);
         }
 
         // If login is successful, you can return a success message or user data
         return {
             message: "Login successful",
-            user: gymUser,
+            username: gymUser.username,
         };
 
     } catch (error) {
