@@ -18,3 +18,22 @@ model Gym {
   username String @unique
   password String
 }
+
+model Trainee {
+  id            String      @id @default(cuid())
+  first_name    String
+  last_name     String
+  gender        String
+  dob           DateTime
+  address       String
+  place         String
+  mobile_number String   @unique
+  email         String?   @unique
+  workout_time  String
+  height        Int
+  weight        Int
+  status        String
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) 
+  updated_at    DateTime @updatedAt  
+}
