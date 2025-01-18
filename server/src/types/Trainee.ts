@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
+
 export interface Trainee {
-    id?: never; 
+    _id?: mongoose.Types.ObjectId; 
     first_name: string;
     last_name: string;
     gender: string;
