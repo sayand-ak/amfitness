@@ -1,6 +1,1 @@
 .env
-node_modules
-dist
-coverage
-*.log
-*.pid
