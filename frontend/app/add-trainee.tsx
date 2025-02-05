@@ -21,6 +21,8 @@ import { AntDesign } from "@expo/vector-icons"
 import AdmissionCheck from "@/components/AdmissionCheck";
 import { addTraineeFromStyles } from "@/styles/add-trainee";
 import { useRouter } from "expo-router";
+import api from "@/api/trainee";
+import axios from "axios";
 
 
 
@@ -92,6 +94,32 @@ const UserForm: React.FC = () => {
         }
     };
 
+    // Create FormData from trainee data
+    const createFormData = (values: Trainee): FormData => {
+        const formData = new FormData();
+        
+        (Object.keys(values) as Array<keyof Trainee>).forEach(key => {
+            if (key === 'image') {
+                if (values.image && typeof values.image === 'string') {
+                    const uriParts = values.image.split('.');
+                    const fileType = uriParts[uriParts.length - 1];
+                    
+                    formData.append('image', {
+                        uri: values.image,
+                        name: `photo.${fileType}`,
+                        type: `image/${fileType}`
+                    } as any);
+                }
+            } else if (key === 'dob' || key === 'admission_date') {
+                formData.append(key, values[key].toISOString());
+            } else {
+                formData.append(key, values[key]?.toString() || '');
+            }
+        });
+        
+        return formData;
+    }
+
     const handleSubmit = async (
         values: Trainee,
         formikHelpers: FormikHelpers<Trainee>
@@ -100,21 +128,55 @@ const UserForm: React.FC = () => {
             // Validate all fields before submission
             await traineeValidationSchema.validate(values, { abortEarly: false });
             
-            // If validation passes, proceed with submission
-            console.log('Form submitted with values:', values);
-            Alert.alert("Success", "Form submitted successfully!");
-            formikHelpers.resetForm();
-        } catch (error) {
-            if (error instanceof Error) {
-                Alert.alert("Validation Error", error.message);
+            // Create FormData
+            const formData = createFormData(values);
+
+            // Make API call
+            const response = await api.post('/add', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            console.log(response);
+
+            if (response.data.success) {
+                Alert.alert(
+                    "Success",
+                    "Trainee added successfully!",
+                    [
+                        {
+                            text: "OK",
+                            onPress: () => {
+                                formikHelpers.resetForm();
+                                // Optionally navigate back or to another screen
+                                // router.back();
+                            }
+                        }
+                    ]
+                );
             } else {
-                Alert.alert("Error", "Failed to submit form");
+                throw new Error(response.data.message || 'Failed to add trainee');
             }
-            console.error(error);
+        } catch (error) {
+            console.log(error)
+            let errorMessage = 'Failed to submit form';
+            
+            if (axios.isAxiosError(error)) {
+                // Handle Axios errors
+                errorMessage = error.response?.data?.message || error.message;
+            } else if (error instanceof Error) {
+                // Handle validation errors
+                errorMessage = error.message;
+            }
+            
+            Alert.alert("Error", errorMessage);
+            console.error('Form submission error:', error);
         } finally {
             formikHelpers.setSubmitting(false);
         }
     };
+
 
     const handleAdmissionChange = (
         admissionData: { number: string; date: string },
@@ -390,7 +452,7 @@ const UserForm: React.FC = () => {
 
                         {/* Image Picker */}
                         <ImagePickerInput
-                            imageUri={values.image}
+                            imageUri={values.image as string}
                             setFieldValue={setFieldValue}
                             fieldName="image"
                             touched={touched}

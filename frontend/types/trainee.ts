@@ -12,5 +12,11 @@ export interface Trainee {
     weight?: string;
     admission_date: Date;
     admission_no: string;
-    image: string;
+    status?: string
+    image: TraineeImage | string;
+}
+
+export interface TraineeImage {
+    url: string,
+    public_id: string
 }
